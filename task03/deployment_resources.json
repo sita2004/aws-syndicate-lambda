@@ -45,12 +45,13 @@
   },
   "cmtr-be27ec0c-hello_world": {
     "resource_type": "lambda",
+    "name": "cmtr-be27ec0c-hello_world",
     "runtime": "python3.9",
     "handler": "hello_world.lambda_handler",
     "memory_size": 128,
     "timeout": 10,
     "role": "cmtr-be27ec0c-lambda-basic-execution-d7pc",
-    "version": "$LATEST",   
+    "version": "$LATEST",
     "alias": "learn",
     "tags": {}
   }
