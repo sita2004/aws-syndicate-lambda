@@ -14,7 +14,13 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "sqs:ReceiveMessage",
+            "sqs:DeleteMessage",
+            "sqs:GetQueueAttributes",
+            "sns:Publish",
+            "sns:Subscribe",
+            "sns:GetTopicAttributes"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -25,24 +31,23 @@
     "resource_type": "iam_policy",
     "tags": {}
   },
-  "sqs_handler-role": {
+
+  "sqs_handler_role": {
     "predefined_policies": [],
     "principal_service": "lambda",
-    "custom_policies": [
-      "lambda-basic-execution"
-    ],
+    "custom_policies": ["lambda-basic-execution"],
     "resource_type": "iam_role",
     "tags": {}
   },
-  "sns_handler-role": {
+
+  "sns_handler_role": {
     "predefined_policies": [],
     "principal_service": "lambda",
-    "custom_policies": [
-      "lambda-basic-execution"
-    ],
+    "custom_policies": ["lambda-basic-execution"],
     "resource_type": "iam_role",
     "tags": {}
   },
+
   "async_queue": {
     "resource_type": "sqs_queue",
     "fifo_queue": false,
@@ -56,10 +61,43 @@
     "content_based_deduplication": false,
     "tags": {}
   },
+
   "lambda_topic": {
     "resource_type": "sns_topic",
     "region": "eu-west-1",
     "event_sources": [],
     "tags": {}
-  }
+  },
+
+  "sqs_lambda_handler": {
+  "resource_type": "lambda",
+  "runtime": "java",
+  "handler": "com.task04.SqsHandler::handleRequest",
+  "memory_size": 256,
+  "timeout": 30,
+  "role": "sqs_handler_role",
+  "event_sources": [
+    {
+      "type": "sqs",
+      "resource": "async_queue"
+    }
+  ],
+  "tags": {}
+},
+
+"sns_lambda_handler": {  
+"resource_type": "lambda",
+"runtime": "java",
+"handler": "com.task04.SnsHandler::handleRequest",
+"memory_size": 256,
+"timeout": 30,
+"role": "sns_handler_role",
+"event_sources": [
+{
+"type": "sns",
+"resource": "lambda_topic"
+}
+],
+"tags": {}
+}
 }
