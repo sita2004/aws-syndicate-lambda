@@ -15,12 +15,9 @@
             "ssm:PutParameter",
             "ssm:GetParameter",
             "kms:Decrypt",
-            "sqs:ReceiveMessage",
-            "sqs:DeleteMessage",
             "sqs:GetQueueAttributes",
-            "sns:Publish",
-            "sns:Subscribe",
-            "sns:GetTopicAttributes"
+            "sqs:ReceiveMessage",
+            "sqs:DeleteMessage"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -31,27 +28,10 @@
     "resource_type": "iam_policy",
     "tags": {}
   },
-
-  "sqs_handler_role": {
-    "predefined_policies": [],
-    "principal_service": "lambda",
-    "custom_policies": ["lambda-basic-execution"],
-    "resource_type": "iam_role",
-    "tags": {}
-  },
-
-  "sns_handler_role": {
-    "predefined_policies": [],
-    "principal_service": "lambda",
-    "custom_policies": ["lambda-basic-execution"],
-    "resource_type": "iam_role",
-    "tags": {}
-  },
-
   "async_queue": {
     "resource_type": "sqs_queue",
     "fifo_queue": false,
-    "visibility_timeout": 30,
+    "visibility_timeout": 400,
     "delay_seconds": 0,
     "maximum_message_size": 1024,
     "message_retention_period": 60,
@@ -61,45 +41,28 @@
     "content_based_deduplication": false,
     "tags": {}
   },
-
   "lambda_topic": {
     "resource_type": "sns_topic",
     "region": "eu-west-1",
     "event_sources": [],
     "tags": {}
   },
-
-  "sqs_lambda_handler": {
-    "resource_type": "lambda",
-    "runtime": "java",
-    "handler": "com.task04.SqsHandler::handleRequest",
-    "memory_size": 256,
-    "timeout": 30,
-    "role": "sqs_handler_role",
-    "event_sources": [
-      {
-        "type": "sqs",
-        "resource": "async_queue",
-        "resource_type": "sqs_queue"  
-      }
+  "sqs_handler-role": {
+    "predefined_policies": [],
+    "principal_service": "lambda",
+    "custom_policies": [
+      "lambda-basic-execution"
     ],
+    "resource_type": "iam_role",
     "tags": {}
   },
-
-  "sns_lambda_handler": {
-    "resource_type": "lambda",
-    "runtime": "java",
-    "handler": "com.task04.SnsHandler::handleRequest",
-    "memory_size": 256,
-    "timeout": 30,
-    "role": "sns_handler_role",
-    "event_sources": [
-      {
-        "type": "sns",
-        "resource": "lambda_topic",
-        "resource_type": "sns_topic"  
-      }
+  "sns_handler-role": {
+    "predefined_policies": [],
+    "principal_service": "lambda",
+    "custom_policies": [
+      "lambda-basic-execution"
     ],
+    "resource_type": "iam_role",
     "tags": {}
   }
 }
