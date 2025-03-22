@@ -15,6 +15,9 @@ _LOG = get_logger(__name__)
 # Get the DynamoDB table name from environment variables
 DYNAMODB_TABLE = os.getenv("target_table", "Weather")
 
+# Validate if the table exists
+_LOG.info(f"Using DynamoDB table: {DYNAMODB_TABLE}")
+
 # Initialize AWS services
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(DYNAMODB_TABLE)
@@ -48,6 +51,13 @@ class Processor(AbstractLambda):
             response.raise_for_status()
             weather_data = response.json()
 
+            # Debug API response structure
+            _LOG.info(f"Received API Data: {json.dumps(weather_data, indent=2)}")
+
+            # Ensure all required fields exist before accessing them
+            if "hourly" not in weather_data or "hourly_units" not in weather_data:
+                raise ValueError("Missing expected fields in Open-Meteo response")
+
             # Generate a unique ID
             item_id = str(uuid.uuid4())
 
@@ -58,29 +68,31 @@ class Processor(AbstractLambda):
                     "elevation": weather_data.get("elevation", 0),
                     "generationtime_ms": weather_data.get("generationtime_ms", 0),
                     "hourly": {
-                        "temperature_2m": [{"N": str(temp)} for temp in weather_data["hourly"].get("temperature_2m", [])],
-                        "time": [{"S": t} for t in weather_data["hourly"].get("time", [])]
+                        "temperature_2m": weather_data["hourly"].get("temperature_2m", []),
+                        "time": weather_data["hourly"].get("time", [])
                     },
                     "hourly_units": {
-                        "temperature_2m": {"S": weather_data["hourly_units"].get("temperature_2m", "°C")},
-                        "time": {"S": weather_data["hourly_units"].get("time", "ISO8601")}
+                        "temperature_2m": weather_data["hourly_units"].get("temperature_2m", "°C"),
+                        "time": weather_data["hourly_units"].get("time", "ISO8601")
                     },
-                    "latitude": {"N": str(weather_data.get("latitude", 0))},
-                    "longitude": {"N": str(weather_data.get("longitude", 0))},
-                    "timezone": {"S": weather_data.get("timezone", "")},
-                    "timezone_abbreviation": {"S": weather_data.get("timezone_abbreviation", "")},
-                    "utc_offset_seconds": {"N": str(weather_data.get("utc_offset_seconds", 0))}
+                    "latitude": weather_data.get("latitude", 0),
+                    "longitude": weather_data.get("longitude", 0),
+                    "timezone": weather_data.get("timezone", ""),
+                    "timezone_abbreviation": weather_data.get("timezone_abbreviation", ""),
+                    "utc_offset_seconds": weather_data.get("utc_offset_seconds", 0)
                 }
             }
+
+            # Log the formatted item before inserting it
+            _LOG.info(f"Formatted DynamoDB Item: {json.dumps(item, indent=2)}")
 
             # Store the data in DynamoDB
             put_response = table.put_item(Item=item)
 
             # Log DynamoDB response
             _LOG.info(f"DynamoDB PutItem Response: {put_response}")
-            _LOG.info(f"Inserted Item: {json.dumps(item, indent=2)}")
 
-            # Ensure DynamoDB write was successful
+            # Check if data was successfully stored
             if put_response["ResponseMetadata"]["HTTPStatusCode"] != 200:
                 raise Exception("DynamoDB put_item failed")
 
