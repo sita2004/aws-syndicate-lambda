@@ -29,12 +29,31 @@
   },
   "${target_table}": {
     "resource_type": "dynamodb_table",
-    "hash_key_name": "id",
-    "hash_key_type": "S",
-    "read_capacity": 1,
-    "write_capacity": 1,
-    "global_indexes": [],
-    "autoscaling": [],
-    "tags": {}
+    "hash_key_name": "id",             
+    "hash_key_type": "S",              
+    "read_capacity": 1,                
+    "write_capacity": 1,               
+    "global_indexes": [],              
+    "autoscaling": [],                 
+    "tags": {
+      "Project": "WeatherApp"          
+    }
+  },
+  "lambda-function": {
+    "resource_type": "lambda",
+    "name": "${lambdas_alias_name}",    
+    "version": "v1",                   
+    "runtime": "python3.9",
+    "handler": "lambda_function.lambda_handler", 
+    "code_entry_type": "zip",
+    "memory_size": 128,
+    "timeout": 15,
+    "role": "@processor-role",         
+    "environment_variables": {
+      "TABLE_NAME": "${target_table}"  
+    },
+    "tags": {
+      "Project": "WeatherApp"
+    }
   }
 }
