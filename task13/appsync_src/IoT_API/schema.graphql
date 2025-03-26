@@ -1,0 +1,25 @@
+type IoTEvent {
+  id: ID!
+  timestamp: String!
+  data: String!
+}
+
+type IoTEventResponse {
+  success: Boolean!
+  message: String
+  event: IoTEvent
+}
+
+type Query {
+  getIoTEvent(id: ID!): IoTEvent
+  listIoTEvents: [IoTEvent]  # Fetch all events
+}
+
+type Mutation {
+  createIoTEvent(timestamp: String, data: String!): IoTEventResponse
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

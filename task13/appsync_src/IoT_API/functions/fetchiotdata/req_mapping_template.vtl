@@ -1,0 +1,7 @@
+## Check if the result contains an item
+#if ($ctx.result)
+    $util.toJson($ctx.result)
+#else
+    ## Return an error if the item is not found
+    $util.error("Item not found", "NotFoundError")
+#end
